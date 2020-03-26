@@ -1,4 +1,4 @@
-#!bin/python3
+# #!bin/python3
 
 from collections import Counter
 import gzip
@@ -151,6 +151,7 @@ def count_allele_frequency(filename):
 print(count_allele_frequency('CPCT02220079.annotated.processed.vcf.gz'))
 
 # ------------------------------- TASK 6 -------------------------------------------
+
 from collections import OrderedDict
 from statistics import mean
 import matplotlib.pyplot as plt
@@ -176,7 +177,8 @@ def plot_depth_of_coverage(input_filename):
     chromosomes_names = list(chromosomes.keys())
     chromosomes_mean_depth = [round(mean(depths), 4) for depths in chromosomes.values()]
     plot_coverage_per_chromosome(chromosomes_names, chromosomes_mean_depth)
-    save_to_csv(chromosomes_names, chromosomes_mean_depth, "/home/rafcio/MNM/MNMDiagnostics/Mean_depth_per_chromosome.csv")
+    save_to_csv(chromosomes_names, chromosomes_mean_depth,
+                "/home/rafcio/MNM/MNMDiagnostics/Mean_depth_per_chromosome.csv")
 
 
 def save_to_csv(names, depths, path):
@@ -205,3 +207,22 @@ def plot_coverage_per_chromosome(names, depths):
 
 
 plot_depth_of_coverage('CPCT02220079.annotated.processed.vcf.gz')
+
+
+# ------------------------------- TASK 7 -------------------------------------------
+# I assume that if one from {HIGH, LOW, MODERATE, MODIFIER} is present in INFO, then mutation has impact on protein
+
+
+def count_impacts(input_filename):
+    number_of_modifications = 0
+    with gzip.open(input_filename, 'rb') as f:
+        for line in f:
+            line = line.decode("utf-8").split("\t")
+            if "#" not in line[0]:
+                if any(impact in line[7] for impact in ("MODIFIER", "LOW", "MODERATE", "HIGH")):
+                    number_of_modifications += 1
+
+    return number_of_modifications
+
+
+print(count_impacts('CPCT02220079.annotated.processed.vcf.gz'))
