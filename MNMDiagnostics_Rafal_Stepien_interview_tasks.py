@@ -214,6 +214,10 @@ plot_depth_of_coverage('CPCT02220079.annotated.processed.vcf.gz')
 
 
 def count_impacts(input_filename):
+    """
+    :param input_filename: VCF input file name
+    :return: Number of mutations, that have impact on protein
+    """
     number_of_modifications = 0
     with gzip.open(input_filename, 'rb') as f:
         for line in f:
