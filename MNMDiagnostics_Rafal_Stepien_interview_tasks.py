@@ -75,43 +75,46 @@ import gzip
 
 # I assume that "For precise variants, END is POS + length of REF allele - 1, and the for imprecise variants the corresponding bestestimate."
 # As written in VCF documentation : https://samtools.github.io/hts-specs/VCFv4.1.pdf
-
-import matplotlib.pyplot as plt
-from matplotlib import gridspec
-
-
-def get_indel_length_histograms(input_filename):
-    """
-    :param filename: VCF input file name
-    :return:
-    """
-    chromosomes = dict()
-    with gzip.open(input_filename, 'rb') as f:
-        for line in f:
-            line = line.decode("utf-8").split("\t")
-            if "#" not in line[0]:
-                chromosomes.setdefault(line[0], [])
-                chromosomes[line[0]].append(abs(len(line[3]) - len(line[4])) + 1)
-    plot_chromosomes_distribution(chromosomes)
-
-
-def plot_chromosomes_distribution(chromosomes):
-    plt.style.use('fivethirtyeight')
-    figure, axis = plt.subplots(5, 5)
-    axis = axis.ravel()
-    for n, (chromosome, lengths) in enumerate(chromosomes.items()):
-        bins = list(range(1, max(lengths)))
-        axis[n].hist(lengths, bins=bins, edgecolor="black")
-        axis[n].set_yscale('log')
-        axis[n].set_title("Chromosome {}".format(chromosome), fontsize=10)
-        axis[n].tick_params(axis='both', which='major', labelsize=10)
-    plt.title = "Polymorphisms length distribution per chromosome"
-    plt.tight_layout()
-    plt.subplots_adjust(wspace=0.025, hspace=0.5)
-    plt.show()
-
-
-get_indel_length_histograms('CPCT02220079.annotated.processed.vcf.gz')
+#
+# import matplotlib.pyplot as plt
+#
+#
+# def get_indel_length_histograms(input_filename):
+#     """
+#     :param filename: VCF input file name
+#     :return: Dictionary with chromosomes and their lengths
+#     """
+#     chromosomes = dict()
+#     with gzip.open(input_filename, 'rb') as f:
+#         for line in f:
+#             line = line.decode("utf-8").split("\t")
+#             if "#" not in line[0]:
+#                 chromosomes.setdefault(line[0], [])
+#                 chromosomes[line[0]].append(abs(len(line[3]) - len(line[4])) + 1)
+#     plot_chromosomes_distribution(chromosomes)
+#
+#
+# def plot_chromosomes_distribution(chromosomes):
+#     """
+#     :param chromosomes: Dictionary with chromosomes and their lengths
+#     :return: Plot with lengths distribution per chromosome
+#     """
+#     plt.style.use('fivethirtyeight')
+#     figure, axis = plt.subplots(5, 5)
+#     axis = axis.ravel()
+#     for n, (chromosome, lengths) in enumerate(chromosomes.items()):
+#         bins = list(range(1, max(lengths)))
+#         axis[n].hist(lengths, bins=bins, edgecolor="black")
+#         axis[n].set_yscale('log')
+#         axis[n].set_title("Chromosome {}".format(chromosome), fontsize=10)
+#         axis[n].tick_params(axis='both', which='major', labelsize=10)
+#     plt.title = "Polymorphisms length distribution per chromosome"
+#     plt.tight_layout()
+#     plt.subplots_adjust(wspace=0.025, hspace=0.5)
+#     plt.show()
+#
+#
+# get_indel_length_histograms('CPCT02220079.annotated.processed.vcf.gz')
 
 # ------------------------------- TASK 5 -------------------------------------------
 
@@ -138,3 +141,45 @@ get_indel_length_histograms('CPCT02220079.annotated.processed.vcf.gz')
 #     return counter
 #
 # print(count_allele_frequency('CPCT02220079.annotated.processed.vcf.gz'))
+
+# ------------------------------- TASK 6 -------------------------------------------
+from collections import OrderedDict
+from statistics import mean
+import matplotlib.pyplot as plt
+
+
+def plot_depth_of_coverage(input_filename):
+    """
+
+    Plots mean depth of coverage per chromosome
+
+    :param input_filename: VCF input file name
+    """
+    chromosomes = OrderedDict()
+    with gzip.open(input_filename, 'rb') as f:
+        for line in f:
+            line = line.decode("utf-8").split("\t")
+            if "#" not in line[0]:
+                if line[0].isnumeric():
+                    chromosomes.setdefault(line[0], [])
+                    chromosomes[line[0]].append(int(line[7].split("DP=")[1].split(";")[0]))
+
+    chromosomes_names = list(chromosomes.keys())
+    chromosomes_mean_depth = [round(mean(depths), 4) for depths in chromosomes.values()]
+    plot_coverage_per_chromosome(chromosomes_names, chromosomes_mean_depth)
+
+
+def plot_coverage_per_chromosome(names, depths):
+    """
+    :param names: List of chromosome names/ID's
+    :param depths: List of mean depth of coverage per chromosome
+    """
+    plt.style.use('fivethirtyeight')
+    plt.bar(names, depths, color="#2a2b2a")
+    plt.title("Mean depth of coverage for polymorphisms in chromosome")
+    plt.xlabel("Chromosome")
+    plt.ylabel("Mean depth of coverage")
+    plt.show()
+
+
+plot_depth_of_coverage('CPCT02220079.annotated.processed.vcf.gz')
